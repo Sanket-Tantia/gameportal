@@ -1,0 +1,35 @@
+<nav style="height: 91.5vh;" class="col-md-2 d-none d-md-block navbar-dark bg-dark sidebar">
+    <div class="sidebar-sticky">
+        <ul class="nav flex-column" style="margin-top: 10%;">
+            <li class="nav-item" style="margin-bottom: 10%;">
+                <a class="nav-link active" style="color:wheat" href="{% url 'admin_dashboard' %}">
+                <span data-feather="home"></span>
+                Dashboard
+                </a>
+            </li>
+            <li class="nav-item" style="margin-bottom: 10%;">
+                <a class="nav-link" style="color:wheat" href="{% url 'create_user' %}">
+                <span data-feather="plus-square"></span>
+                Create User
+                </a>
+            </li>
+            <li class="nav-item" style="margin-bottom: 10%;">
+                <a class="nav-link" style="color:wheat" href="{% url 'admin_dashboard' %}">
+                <span data-feather="dollar-sign"></span>
+                Transaction History
+                </a>
+            </li>
+            <li class="nav-item" style="margin-bottom: 10%;">
+                <a class="nav-link" style="color:wheat" href="#">
+                <span data-feather="bar-chart-2"></span>
+                Reports
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+<script>
+    feather.replace()
+</script>

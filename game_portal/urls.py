@@ -15,10 +15,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from rest_framework.urlpatterns import format_suffix_patterns
-from user.views import UserListView
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('user/', include('user.urls'))
+    # path('user/', include('user.urls'))
+    path('', include('accounts.urls'))
 ]

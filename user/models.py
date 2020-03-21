@@ -1,10 +1,10 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+# from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from datetime import datetime
 # Create your models here.
 
 
-class User(Abstrac):
+class User(models.Model):
     user_id = models.CharField(primary_key=True, max_length=100)
     name = models.CharField(max_length=100)
     password = models.CharField(max_length=255)
