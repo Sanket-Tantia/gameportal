@@ -2,54 +2,128 @@
 
 {% block content %}
 
+<style>
+    .showMe{
+        display: block;
+    }
+    .hideMe{
+        display: none;
+    }
+</style>
+
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
 
 <div class="container-fluid">
 <div class="row">
     {%  include 'accounts/sidebar.html' %}
     <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
-    {% if all_users_token %}
-    <p class="btn" style="margin-bottom: 2%;">
-        <span data-feather="codesandbox"></span>
-        <strong style="font-size:1.1rem">Available Token Purchase History</strong>
-    </p>
-    <div class="table-responsive">
-        <table class="table table-striped table-hover" style="text-align: center;">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Username</th>
-                    <th>Purchased Token Amount</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for username,values in all_users_token.items %}
-                {% for each_value in values %}
-                <tr>
-                    <td >{{ each_value.count }}</td>
-                    <td><a style= "color: #212529;">{{username}}</a></td>
-                    <td >{{ each_value.token_amount }}</td>
-                    <td>{{ each_value.date }}</td>
-                </tr>
-                {% endfor %}
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3" style="margin: 1%;">
+        <h1 class="h4">User Token Transaction History</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group mr-2">
+            <button id="purchasedButton" class="btn btn-sm btn-secondary" onclick="showPurchaseView()"><strong>Purchased</strong></button>
+            <button id="grantedButton" class="btn btn-sm btn-outline-secondary" onclick="showGrantView()"><strong>Granted</strong></button>
+          </div>
+        </div>
     </div>
-    {% else %}
-    <div class="container-fluid" style="text-align: center; margin-top: 17.5%; ">
-    <h3 class="text-muted display-4">No Records Exist.<br></h3>
-    <!-- <a class="btn btn-primary btn-lg" style="margin-top: 2.5%;" href="{% url 'create_user' %}">
-        <span data-feather="user"></span>
-        Create User
-    </a> -->
+    <div id="purchased" class="showMe">
+        {% if all_users_purchase_token %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" style="text-align: center;">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Username</th>
+                        <th>Purchased Token Amount</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for username,values in all_users_purchase_token.items %}
+                    {% for each_value in values %}
+                    <tr>
+                        <td >{{ each_value.count }}</td>
+                        <td><a style= "color: #212529;">{{username}}</a></td>
+                        <td >{{ each_value.token_amount }}</td>
+                        <td>{{ each_value.date }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="container-fluid" style="text-align: center; margin-top: 17.5%; ">
+        <h3 class="text-muted display-4">No Records Exist.<br></h3>
+        <!-- <a class="btn btn-primary btn-lg" style="margin-top: 2.5%;" href="{% url 'create_user' %}">
+            <span data-feather="user"></span>
+            Create User
+        </a> -->
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
+
+    <div id="granted" class="showMe hideMe">
+        {% if all_users_grant_token %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" style="text-align: center;">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Username</th>
+                        <th>Granted Token Amount</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for username,values in all_users_grant_token.items %}
+                    {% for each_value in values %}
+                    <tr>
+                        <td >{{ each_value.count }}</td>
+                        <td><a style= "color: #212529;">{{username}}</a></td>
+                        <td >{{ each_value.token_amount }}</td>
+                        <td>{{ each_value.date }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="container-fluid" style="text-align: center; margin-top: 17.5%; ">
+        <h3 class="text-muted display-4">No Records Exist.<br></h3>
+        <!-- <a class="btn btn-primary btn-lg" style="margin-top: 2.5%;" href="{% url 'create_user' %}">
+            <span data-feather="user"></span>
+            Create User
+        </a> -->
+        </div>
+        {% endif %}
+    </div>
     </main>
 </div>
 </div>
 
+<script>
+
+    var showPurchaseView = function(){
+        document.getElementById("granted").classList.add('hideMe');
+        document.getElementById("purchased").classList.remove('hideMe');
+
+        document.getElementById("grantedButton").classList.remove('btn-secondary');
+        document.getElementById("grantedButton").classList.add('btn-outline-secondary');
+        document.getElementById("purchasedButton").classList.add('btn-secondary');
+    }
+
+    var showGrantView= function(){
+        document.getElementById("purchased").classList.add('hideMe');
+        document.getElementById("granted").classList.remove('hideMe');
+
+        document.getElementById("purchasedButton").classList.remove('btn-secondary');
+        document.getElementById("purchasedButton").classList.add('btn-outline-secondary');
+        document.getElementById("grantedButton").classList.add('btn-secondary');
+    }
+
+</script>
 
 
 

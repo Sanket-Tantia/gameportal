@@ -35,15 +35,16 @@
                     <td >{{ value.probability }}</td>
                     <td >{{ value.token_amount }}</td>
                     <td>
-                        <button type="button" class="btn btn-sm" style="margin-bottom: 2%;" 
+                        <button type="button" class="btn btn-sm btn-info" style="margin-bottom: 2%;" 
                         data-toggle="modal" data-target="#exampleModalCenter" data-email="{{value.email}}"
                         data-username="{{username}}" data-probability="{{value.probability}}" 
                         data-token_amount="{{value.token_amount}}" >
                             <span data-feather="edit"></span>
-                        </button> | <button type="button" class="btn btn-sm" style="margin-bottom: 2%;" 
+                        </button> 
+                        <!-- | <button type="button" class="btn btn-sm" style="margin-bottom: 2%;" 
                         data-toggle="modal" data-target="#tokenModal" data-username="{{username}}" >
                             <span data-feather="clipboard"></span>
-                        </button> 
+                        </button>  -->
                     </td>
                 </tr>
                 {% endfor %}

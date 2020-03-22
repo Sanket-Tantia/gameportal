@@ -142,9 +142,9 @@ def adminDashboard(request):
                     profile_form.save()
                 else:
                     print("Profile form not valid", profile_form.errors)
-        
+
         new_token_amount = request.POST.get('token_amount', None)
-        if new_token_amount and int(new_token_amount)>0:
+        if new_token_amount and int(new_token_amount) > 0:
             token_data = {
                 'username': user_obj.id,
                 'session': request.session._session_key,
@@ -206,11 +206,33 @@ def adminDashboard(request):
             all_users_detail[each_user.username]['token_amount'] = 0
         count += 1
 
-    token_history = TokenTransaction.objects.filter(
+    context = {'all_users_detail': all_users_detail}
+    return render(request, 'accounts/admin_dashboard.html', context)
+
+
+@login_required(login_url='login')
+@authorized_user(allowed_roles=['admin'])
+def transactionDashboard(request):
+    purchase_token_history = TokenTransaction.objects.filter(
+        is_token_purchased=True).order_by('username')
+
+    all_users_purchase_token, count = {}, 1
+    for each_transaction in purchase_token_history:
+        if not all_users_purchase_token.get(each_transaction.username.username, False):
+            all_users_purchase_token[each_transaction.username.username] = []
+
+        all_users_purchase_token[each_transaction.username.username].append({
+            'count': count,
+            'token_amount': each_transaction.token_amount,
+            'date': each_transaction.transaction_date,
+        })
+        count += 1
+
+    grant_token_history = TokenTransaction.objects.filter(
         is_token_granted=True).order_by('username')
 
     all_users_grant_token, count = {}, 1
-    for each_transaction in token_history:
+    for each_transaction in grant_token_history:
         if not all_users_grant_token.get(each_transaction.username.username, False):
             all_users_grant_token[each_transaction.username.username] = []
 
@@ -221,31 +243,9 @@ def adminDashboard(request):
         })
         count += 1
 
-    # print(all_users_detail)
-    context = {'all_users_detail': all_users_detail,
+    # print(all_users_purchase_token)
+    context = {'all_users_purchase_token': all_users_purchase_token,
                'all_users_grant_token': all_users_grant_token}
-
-    return render(request, 'accounts/admin_dashboard.html', context)
-
-
-@login_required(login_url='login')
-@authorized_user(allowed_roles=['admin'])
-def transactionDashboard(request):
-    token_history = TokenTransaction.objects.filter(
-        is_token_purchased=True).order_by('username')
-
-    all_users_token, count = {}, 1
-    for each_transaction in token_history:
-        if not all_users_token.get(each_transaction.username.username, False):
-            all_users_token[each_transaction.username.username] = []
-        all_users_token[each_transaction.username.username].append({
-            'count': count,
-            'token_amount': each_transaction.token_amount,
-            'date': each_transaction.transaction_date,
-        })
-        count += 1
-    # print(all_users_token)
-    context = {'all_users_token': all_users_token}
     return render(request, 'accounts/transaction_dashboard.html', context)
 
 
