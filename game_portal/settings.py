@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     # external libs
     'rest_framework',
     # custom apps
-    'accounts'
+    'accounts',
+    'apis'
     
 ]
 

@@ -100,6 +100,10 @@ def createUserPage(request):
 @login_required(login_url='login')
 @authorized_user(allowed_roles=['admin'])
 def adminDashboard(request):
+    if request.method == 'POST':
+        print(request, '434')
+
+    print(request, 'ttytgv')
     all_users_detail = {}
     count = 1
     for each_user in User.objects.filter(groups__name='customer'):
@@ -124,8 +128,10 @@ def adminDashboard(request):
         else:
             all_users_detail[each_user.username]['token_amount'] = 0
         count += 1
-    print(all_users_detail)
+    # print(all_users_detail)
     context = {'all_users_detail': all_users_detail}
+
+    
 
     return render(request, 'accounts/admin_dashboard.html', context)
 
@@ -135,3 +141,8 @@ def adminDashboard(request):
 def gameConsole(request):
     context = {}
     return render(request, 'accounts/game_console.html', context)
+
+
+# @login_required(login_url='login')
+# @authorized_user(allowed_roles=['admin'])
+# def updateUser(request):

@@ -27,3 +27,14 @@ class AvailableToken(models.Model):
     username = models.OneToOneField(
         User, on_delete=models.CASCADE, primary_key=True)
     available_token = models.PositiveIntegerField()
+
+
+class GameRound(models.Model):
+    username = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    session = models.CharField(max_length=255)
+    tokens_playing_for = models.IntegerField()
+    tokens_won = models.IntegerField()
+    tokens_remaining = models.IntegerField()
+    won_on_number = models.IntegerField(blank=True, null=True)
+    is_jackpot = models.BooleanField(default=False)
+    insert_datetime = models.DateTimeField(auto_now_add=True)
