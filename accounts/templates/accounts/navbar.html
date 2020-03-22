@@ -17,11 +17,11 @@
     <ul class="navbar-nav">
       {% ifequal user.groups.all.0.name 'admin' %}
       <li class="nav-item active">
-        <a class="nav-link" href="{% url 'admin_dashboard' %}">Dashboard</a>
+        <a class="nav-link" style="font-style: italic;">Admin Panel</a>
       </li>
       {% else %}
       <li class="nav-item active">
-        <a class="nav-link" href="{% url 'game_console' %}">Dashboard</a>
+        <a class="nav-link" style="font-style: italic;">Play smart or be lucky!!</a>
       </li>
       {% endifequal %}
       <!-- <li class="nav-item">
@@ -31,5 +31,5 @@
   </div>
 
   <span class="welcome-msg">Welcome, {{request.user}}</span>
-  <span class="welcome-msg"><a href="{% url 'logout' %}">Sign out</a></span>
+  <span class="welcome-msg"><a style="color:cornflowerblue;" href="{% url 'logout' %}">Sign out</a></span>
 </nav>

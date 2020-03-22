@@ -5,10 +5,19 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, User
 from .decorators import isathenticated_user, authorized_user
 
+from datetime import datetime, date
+
 from django.contrib import messages
+
+from django.db import connection
 
 from .forms import CreateUserForm, CreateProfileForm, TokenTransactionForm
 from .models import AvailableToken, Profile, TokenTransaction
+
+from datetime import datetime
+
+# global variable
+_login_time = None
 
 
 @isathenticated_user
@@ -45,7 +54,7 @@ def logoutPage(request):
 def createUserPage(request):
     context = {}
     if request.method == 'POST':
-
+        print(request.POST)
         user_data = {
             'username': request.POST.get('username'),
             'email': request.POST.get('email'),
@@ -63,13 +72,13 @@ def createUserPage(request):
             profile_data = {
                 'username': user.id,
                 'name': request.POST.get('name'),
-                'probability': request.POST.get('probability')
+                'probability': request.POST.get('probability') if request.POST.get('probability') else None
             }
 
             token_data = {
                 'username': user.id,
                 'session': request.session._session_key,
-                'token_amount': request.POST.get('token_amount'),
+                'token_amount': request.POST.get('token_amount') if request.POST.get('token_amount') else 0,
                 'is_token_purchased': True,
                 'is_token_granted': False
             }
@@ -84,7 +93,7 @@ def createUserPage(request):
                 return redirect('admin_dashboard')
             else:
                 # delete that user
-                User.objects.get(username=username).delete()
+                # User.objects.get(username=username).delete()
                 if token_transaction_form.is_valid():
                     print("Profile form not valid", profile_form.errors)
                 else:
@@ -101,11 +110,78 @@ def createUserPage(request):
 @authorized_user(allowed_roles=['admin'])
 def adminDashboard(request):
     if request.method == 'POST':
-        print(request, '434')
+        new_probability = request.POST.get('probability', None)
+        user_obj = User.objects.get(username=request.POST.get('username'))
 
-    print(request, 'ttytgv')
-    all_users_detail = {}
-    count = 1
+        if new_probability:
+            profile_obj = user_obj.profile_set.filter(is_active=True)[0]
+            existing_probability = profile_obj.probability
+
+            if int(new_probability) != existing_probability:
+                with connection.cursor() as cursor:
+                    if existing_probability:
+                        cursor.execute("""UPDATE accounts_profile 
+                        SET is_active = 0, end_date = DATE(%s) 
+                        WHERE is_active = 1 
+                        AND username_id = %s 
+                        AND probability != %s""", [date.today(), user_obj.id, new_probability])
+                    else:
+                        cursor.execute("""UPDATE accounts_profile 
+                        SET is_active = 0, end_date = DATE(%s) 
+                        WHERE is_active = 1 
+                        AND username_id = %s""", [date.today(), user_obj.id])
+
+                profile_data = {
+                    'username': user_obj.id,
+                    'name': profile_obj.name,
+                    'probability': new_probability
+                }
+                profile_form = CreateProfileForm(profile_data)
+
+                if profile_form.is_valid():
+                    profile_form.save()
+                else:
+                    print("Profile form not valid", profile_form.errors)
+        
+        new_token_amount = request.POST.get('token_amount', None)
+        if new_token_amount and int(new_token_amount)>0:
+            token_data = {
+                'username': user_obj.id,
+                'session': request.session._session_key,
+                'token_amount': new_token_amount,
+                'is_token_purchased': True,
+                'is_token_granted': False
+            }
+            token_form = TokenTransactionForm(token_data)
+            if token_form.is_valid():
+                token_form.save()
+            else:
+                print("token form not valid", token_form.errors)
+
+                # profile_obj = user_obj.profile_set.filter(is_active=True)
+            # do_insert_flag = True
+            # if profile_obj.count() > 0 and profile_obj[0].probability:
+            #     if profile_obj[0].probability == int(new_probability):
+            #         do_insert_flag = False
+
+            # if do_insert_flag:
+            #     with connection.cursor() as cursor:
+            #         cursor.execute("""UPDATE accounts_profile SET is_active = 0,
+            #         end_date = DATE(%s) WHERE is_active = 1
+            #         AND username = %s""", [date.today(), user_obj.id])
+
+            #     profile_data = {
+            #         'username': user_obj.id,
+            #         'name': profile_obj[0].name,
+            #         'probability': new_probability
+            #     }
+            #     profile_form = CreateProfileForm(profile_data)
+
+            #     if profile_form.is_valid():
+            #         profile_form.save()
+
+    all_users_detail, count = {}, 1
+
     for each_user in User.objects.filter(groups__name='customer'):
         all_users_detail[each_user.username] = {'count': count}
 
@@ -113,6 +189,7 @@ def adminDashboard(request):
             all_users_detail[each_user.username]['email'] = each_user.email
         else:
             all_users_detail[each_user.username]['email'] = 'NA'
+
         each_user_profile = each_user.profile_set.filter(is_active=True)
 
         if each_user_profile.count() > 0 and each_user_profile[0].probability:
@@ -128,21 +205,93 @@ def adminDashboard(request):
         else:
             all_users_detail[each_user.username]['token_amount'] = 0
         count += 1
-    # print(all_users_detail)
-    context = {'all_users_detail': all_users_detail}
 
-    
+    token_history = TokenTransaction.objects.filter(
+        is_token_granted=True).order_by('username')
+
+    all_users_grant_token, count = {}, 1
+    for each_transaction in token_history:
+        if not all_users_grant_token.get(each_transaction.username.username, False):
+            all_users_grant_token[each_transaction.username.username] = []
+
+        all_users_grant_token[each_transaction.username.username].append({
+            'count': count,
+            'token_amount': each_transaction.token_amount,
+            'date': each_transaction.transaction_date,
+        })
+        count += 1
+
+    # print(all_users_detail)
+    context = {'all_users_detail': all_users_detail,
+               'all_users_grant_token': all_users_grant_token}
 
     return render(request, 'accounts/admin_dashboard.html', context)
 
 
 @login_required(login_url='login')
+@authorized_user(allowed_roles=['admin'])
+def transactionDashboard(request):
+    token_history = TokenTransaction.objects.filter(
+        is_token_purchased=True).order_by('username')
+
+    all_users_token, count = {}, 1
+    for each_transaction in token_history:
+        if not all_users_token.get(each_transaction.username.username, False):
+            all_users_token[each_transaction.username.username] = []
+        all_users_token[each_transaction.username.username].append({
+            'count': count,
+            'token_amount': each_transaction.token_amount,
+            'date': each_transaction.transaction_date,
+        })
+        count += 1
+    # print(all_users_token)
+    context = {'all_users_token': all_users_token}
+    return render(request, 'accounts/transaction_dashboard.html', context)
+
+
+@login_required(login_url='login')
 @authorized_user(allowed_roles=['admin', 'customer'])
 def gameConsole(request):
-    context = {}
+    available_tokens = AvailableToken.objects.get(
+        username=request.user.id).available_token
+
+    if request.method == 'POST':
+
+        transaction_data = {
+            'username': request.user.id,
+            'session': request.session._session_key,
+            'token_amount': request.POST.get('token_amount'),
+            'is_token_purchased': False,
+            'is_token_granted': True
+        }
+        token_transaction_form = TokenTransactionForm(transaction_data)
+        if token_transaction_form.is_valid():
+            token_transaction_form.save()
+            context = {
+                'granted_token': request.POST.get('token_amount'),
+                'login_time': request.user.last_login,
+                'available_tokens': available_tokens - int(request.POST.get('token_amount'))
+            }
+            return render(request, 'accounts/game_console.html', context)
+        else:
+            token_transaction_form.save()
+            context = {
+                'granted_token': 0,
+                'login_time': request.user.last_login,
+                'available_tokens': available_tokens
+            }
+            return render(request, 'accounts/game_console.html', context)
+
+    context = {
+        'granted_token': 0,
+        'login_time': request.user.last_login,
+        'available_tokens': available_tokens
+    }
+
+    try:
+        context['granted_token'] = TokenTransaction.objects.get(
+            session=request.session._session_key)
+    except TokenTransaction.DoesNotExist:
+        pass
+
     return render(request, 'accounts/game_console.html', context)
-
-
-# @login_required(login_url='login')
-# @authorized_user(allowed_roles=['admin'])
-# def updateUser(request):

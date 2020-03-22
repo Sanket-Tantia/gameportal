@@ -1,13 +1,98 @@
 {%  extends 'accounts/main.html' %}
 {% load static %}
 {% block content %}
-<div class="container-fluid">
 
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
 
-Game Console
-
-
-
-
+<div class="container-fluid main">
+    <div class="row">
+        {%  include 'accounts/sidebar.html' %}
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+            {% if granted_token %}
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="gm_thmb">
+                        <a href="http://worksamples.info/star_casino/StarCasino/" target="_blank"><img src="{% static 'images/game-thumb-1.jpg' %}"></a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="gm_thmb">
+                        <a href="#"><img src="{% static 'images/game-thumb-2.jpg' %}" border="0"></a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="gm_thmb">
+                        <a href="#"><img src="{% static 'images/game-thumb-2.jpg' %}" border="0"></a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="container-fluid" style="text-align: center; margin-top: 7%; ">
+                <h3 class="text-muted display-4">Grant Tokens To Play<br></h3>
+                <button type="button" class="btn btn-primary btn-lg" style="margin-top: 10%;" 
+                    data-toggle="modal" data-target="#granttokenModal" data-backdrop="static" data-keyboard="false" data-email="{{value.email}}"
+                    data-username="{{username}}" data-probability="{{value.probability}}" 
+                    data-token_amount="{{value.token_amount}}" ><span data-feather="clipboard"></span>Grant tokens
+                </button>
+            </div>
+            {% endif %}
+        </main>
+    </div>
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="granttokenModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle">Grant Token</h5>
+        </div>
+        <div class="modal-body">
+            <div class="col-md-12">
+                <form id="grantForm" method="POST" action="">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="col-md-6">
+                            <div class="form-group" >
+                                <label>Username</label>
+                                <input type="text" id="username" class="form-control" name="username" value="{{request.user}}" readonly>
+                                <small class="form-text text-muted">Logged in user</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Available Tokens</label>
+                                <input type="number" id="probability" class="form-control" name="probability" value="{{available_tokens}}" readonly>
+                                <small class="form-text text-muted">Total tokens you have.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            <div class="form-group" >
+                                <label>Grant Token</label>
+                                <input type="number"  id="token_amount" class="form-control" name="token_amount" placeholder="Enter token amount">
+                                <small class="form-text text-muted">Enter the token amount for current customer. Must be less than available tokens.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function(){
+        var granted_token = "{{ granted_token }}";
+        if (granted_token == 0){
+            $("#granttokenModal").modal({keyboard:false, backdrop:"static"});
+        }
+    });
+</script>
 {% endblock %}

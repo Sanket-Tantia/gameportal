@@ -7,7 +7,7 @@ from datetime import datetime
 class Profile(models.Model):
     username = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     name = models.CharField(max_length=255)
-    probability = models.PositiveIntegerField()
+    probability = models.PositiveIntegerField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_date = models.DateField(auto_now_add=True)
     end_date = models.DateField(
@@ -20,7 +20,7 @@ class TokenTransaction(models.Model):
     token_amount = models.PositiveIntegerField(default=0)
     is_token_purchased = models.BooleanField()
     is_token_granted = models.BooleanField()
-    transaction_date = models.DateField(auto_now_add=True)
+    transaction_date = models.DateTimeField(auto_now_add=True)
 
 
 class AvailableToken(models.Model):

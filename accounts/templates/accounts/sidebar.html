@@ -1,6 +1,7 @@
-<nav style="height: 102.5vh;" class="col-md-2 d-none d-md-block navbar-dark bg-dark sidebar">
+<nav style="height: 102.5vh; overflow-x: hidden;" class="col-md-2 d-none d-md-block navbar-dark bg-dark sidebar">
     <div class="sidebar-sticky">
         <ul class="nav flex-column" style="margin-top: 10%;">
+            {% ifequal user.groups.all.0.name 'admin' %}
             <li class="nav-item" style="margin-bottom: 10%;">
                 <a class="nav-link active" style="color:wheat" href="{% url 'admin_dashboard' %}">
                 <span data-feather="home"></span>
@@ -14,9 +15,9 @@
                 </a>
             </li>
             <li class="nav-item" style="margin-bottom: 10%;">
-                <a class="nav-link" style="color:wheat" href="{% url 'admin_dashboard' %}">
-                <span data-feather="dollar-sign"></span>
-                Transaction History
+                <a class="nav-link" style="color:wheat" href="{% url 'transaction_dashboard' %}">
+                <span data-feather="codesandbox"></span>
+                Token History
                 </a>
             </li>
             <li class="nav-item" style="margin-bottom: 10%;">
@@ -25,6 +26,20 @@
                 Reports
                 </a>
             </li>
+            {% else %}
+            <li class="nav-item" style="margin-bottom: 10%;">
+                <a class="nav-link active" style="color:whitesmoke">
+                <span data-feather="edit"></span>
+                Login Time<p style="color:wheat">--> {{login_time}}</p>
+                </a>
+            </li>
+            <li class="nav-item" style="margin-bottom: 10%;">
+                <a class="nav-link active" style="color:whitesmoke">
+                <span data-feather="home"></span>
+                Granted Tokens<p style="color:wheat">--> {{granted_token}}</p>
+                </a>
+            </li>
+            {% endifequal %}
         </ul>
     </div>
 </nav>
