@@ -8,11 +8,11 @@
     <div class="row">
         {%  include 'accounts/sidebar.html' %}
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
-            {% if granted_token %}
+            {% if granted_token%}
             <div class="row">
                 <div class="col-md-4">
                     <div class="gm_thmb">
-                        <a href="http://worksamples.info/star_casino/StarCasino/" target="_blank"><img src="{% static 'images/game-thumb-1.jpg' %}"></a>
+                        <a href="http://worksamples.info/star_casino/StarCasino?username={{request.user.id}}&session={{my_session}}" target="_blank"><img src="{% static 'images/game-thumb-1.jpg' %}"></a>
                     </div>
                 </div>
                 <div class="col-md-4">
