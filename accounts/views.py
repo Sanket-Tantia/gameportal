@@ -16,9 +16,6 @@ from .models import AvailableToken, Profile, TokenTransaction
 
 from datetime import datetime
 
-# global variable
-_login_time = None
-
 
 @isathenticated_user
 def loginPage(request):
