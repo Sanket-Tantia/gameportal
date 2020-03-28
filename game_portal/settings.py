@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # external libs
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
     # custom apps
     'accounts',
@@ -60,6 +61,16 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'game_portal.urls'
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES':{
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    },
+    'DEFAULT_PERMISSION_CLASSES':{
+       'rest_framework.permissions.IsAuthenticated', 
+    },
+}
 
 TEMPLATES = [
     {
@@ -97,7 +108,7 @@ DATABASES = {
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'USER': 'root',
-        'PASSWORD': 'Admin@123',
+        'PASSWORD': 'admin',
     }
 }
 

@@ -6,12 +6,17 @@ from django.db import connection
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 from accounts.models import GameRound, Profile, AvailableToken, TokenTransaction
 from .serializers import GameRoundSerializer
 
 
 class GameRoundListView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request, session):
         all_rounds = GameRound.objects.filter(session=session)
         serializer = GameRoundSerializer(all_rounds, many=True)
@@ -21,6 +26,9 @@ class GameRoundListView(APIView):
 
 
 class GameRoundCreateView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request):
         serializer = GameRoundSerializer(data=request.data)
         if serializer.is_valid():
@@ -31,6 +39,9 @@ class GameRoundCreateView(APIView):
 
 
 class UserGameProfileView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request):
         session = request.data.get('session')
         username = request.data.get('username')
