@@ -29,6 +29,11 @@ class AvailableToken(models.Model):
     available_token = models.PositiveIntegerField()
 
 
+class GrantedToken(models.Model):
+    session = models.CharField(max_length=255, primary_key=True)
+    granted_token = models.PositiveIntegerField()
+
+
 class GameRound(models.Model):
     username = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     session = models.CharField(max_length=255)

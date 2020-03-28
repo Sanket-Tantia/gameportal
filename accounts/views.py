@@ -11,8 +11,11 @@ from django.contrib import messages
 
 from django.db import connection
 
+from django.urls import reverse
+from django.http import HttpResponseRedirect
+
 from .forms import CreateUserForm, CreateProfileForm, TokenTransactionForm
-from .models import AvailableToken, Profile, TokenTransaction
+from .models import AvailableToken, Profile, TokenTransaction, GrantedToken
 
 from datetime import datetime
 
@@ -179,7 +182,8 @@ def adminDashboard(request):
 
             #     if profile_form.is_valid():
             #         profile_form.save()
-
+        return HttpResponseRedirect('/dashboard')
+    
     all_users_detail, count = {}, 1
 
     for each_user in User.objects.filter(groups__name='customer'):
@@ -256,7 +260,7 @@ def gameConsole(request):
         username=request.user.id).available_token
 
     if request.method == 'POST':
-
+        is_valid_amount = True
         transaction_data = {
             'username': request.user.id,
             'session': request.session._session_key,
@@ -265,36 +269,45 @@ def gameConsole(request):
             'is_token_granted': True
         }
         token_transaction_form = TokenTransactionForm(transaction_data)
-        if token_transaction_form.is_valid():
+
+
+        if not request.POST.get('token_amount', False) or int(available_tokens) < int(request.POST.get('token_amount')) or int(request.POST.get('token_amount')) <= 0:
+            is_valid_amount = False
+
+        if token_transaction_form.is_valid() and is_valid_amount:
             token_transaction_form.save()
             context = {
                 'granted_token': request.POST.get('token_amount'),
                 'login_time': request.user.last_login,
-                'available_tokens': available_tokens - int(request.POST.get('token_amount')),
-                'my_session': request.session._session_key
+                'available_tokens': available_tokens - int(request.POST.get('token_amount'))
             }
-            return render(request, 'accounts/game_console.html', context)
+            try:
+                context['granted_token'] = GrantedToken.objects.get(
+                    session=request.session._session_key).granted_token
+            except GrantedToken.DoesNotExist:
+                pass
+            return HttpResponseRedirect('/console')
+            # return render(request, 'accounts/game_console.html', context)
         else:
-            token_transaction_form.save()
             context = {
                 'granted_token': 0,
                 'login_time': request.user.last_login,
-                'available_tokens': available_tokens,
-                'my_session': request.session._session_key
+                'available_tokens': available_tokens
             }
-            return render(request, 'accounts/game_console.html', context)
+            return HttpResponseRedirect('/console')
+            # return render(request, 'accounts/game_console.html', context)
 
+    
     context = {
         'granted_token': 0,
         'login_time': request.user.last_login,
-        'available_tokens': available_tokens,
-        'my_session': request.session._session_key
+        'available_tokens': available_tokens
     }
 
     try:
-        context['granted_token'] = TokenTransaction.objects.get(
-            session=request.session._session_key)
-    except TokenTransaction.DoesNotExist:
+        context['granted_token'] = GrantedToken.objects.get(
+            session=request.session._session_key).granted_token
+    except GrantedToken.DoesNotExist:
         pass
 
     response = render(request, 'accounts/game_console.html', context)

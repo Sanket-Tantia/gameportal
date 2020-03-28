@@ -9,14 +9,14 @@ from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from accounts.models import GameRound, Profile, AvailableToken, TokenTransaction
-from .serializers import GameRoundSerializer
+from accounts.models import GameRound, Profile, AvailableToken, TokenTransaction, GrantedToken
+from .serializers import GameRoundSerializer, TokenTransactionSerializer
 
 
 class GameRoundListView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request, session):
         all_rounds = GameRound.objects.filter(session=session)
         serializer = GameRoundSerializer(all_rounds, many=True)
@@ -28,7 +28,7 @@ class GameRoundListView(APIView):
 class GameRoundCreateView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
         serializer = GameRoundSerializer(data=request.data)
         if serializer.is_valid():
@@ -41,17 +41,18 @@ class GameRoundCreateView(APIView):
 class UserGameProfileView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
         session = request.data.get('session')
         username = request.data.get('username')
         probability = None
         token_granted = 0
 
-        user_granted_token = TokenTransaction.objects.filter(
-            session=session, is_token_granted=True)
-        if user_granted_token.count() > 0 and user_granted_token[0].token_amount:
-            token_granted = user_granted_token[0].token_amount
+        try:
+            token_granted = GrantedToken.objects.get(
+                session=session).granted_token
+        except GrantedToken.DoesNotExist:
+            pass
 
         user_probability = Profile.objects.filter(
             username=username, is_active=True)
@@ -67,3 +68,23 @@ class UserGameProfileView(APIView):
 
         responseBody = {'ResponseStatus': '200_OK', 'ResponseMessage': body}
         return Response(responseBody, status=status.HTTP_201_CREATED)
+
+
+class UserRefillTokenView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        transaction_data = {
+            'username': request.data.get('username'),
+            'session': request.data.get('session'),
+            'token_amount': request.data.get('token_amount'),
+            'is_token_purchased': False,
+            'is_token_granted': True
+        }
+        serializer = TokenTransactionSerializer(data=transaction_data)
+        if serializer.is_valid():
+            serializer.save()
+            responseBody = {'ResponseStatus': '201_CREATED'}
+            return Response(responseBody, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
