@@ -43,7 +43,10 @@ def loginPage(request):
 @login_required(login_url='login')
 def logoutPage(request):
     logout(request)
-    return redirect('login')
+    response = redirect('login')
+    response.delete_cookie('username')
+    response.delete_cookie('session')
+    return response
 
 
 @login_required(login_url='login')
@@ -294,4 +297,7 @@ def gameConsole(request):
     except TokenTransaction.DoesNotExist:
         pass
 
-    return render(request, 'accounts/game_console.html', context)
+    response = render(request, 'accounts/game_console.html', context)
+    response.set_cookie('username', request.user.id)
+    response.set_cookie('session', request.session._session_key)
+    return response
