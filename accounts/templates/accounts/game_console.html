@@ -65,7 +65,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Available Tokens</label>
-                                <input type="number" id="probability" class="form-control" name="probability" value="{{available_tokens}}" readonly>
+                                <input type="number" id="max_token_value" class="form-control" name="max_token_value" value="{{available_tokens}}" readonly>
                                 <small class="form-text text-muted">Total tokens you have.</small>
                             </div>
                         </div>
@@ -86,16 +86,24 @@
       </div>
     </div>
 </div>
-
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 <script>
     $(document).ready(function(){
+        
         var granted_token = "{{ granted_token }}";
         if (granted_token == 0){
             $("#granttokenModal").modal({keyboard:false, backdrop:"static"});
         }
+
+        $("#grantForm").validate({
+    			rules: {
+    				token_amount: {
+                        required: true,
+                        digits: true,
+                        min: 1,
+                        max: parseInt($("#max_token_value").val())
+                    }
+    			}
+    		});
     });
 </script>
 {% endblock %}

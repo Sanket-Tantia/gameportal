@@ -78,7 +78,7 @@
             </div>
             <div class="modal-body">
                 <div class="col-md-12">
-                    <form method="POST" action="">
+                    <form method="POST" action="" id="editForm">
                         {% csrf_token %}
                         <div class="form-group" >
                             <label>Username</label>
@@ -153,10 +153,6 @@
         </div>
     </div>
 </div>
-
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 <script>
     $('#tokenModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget) // Button that triggered the modal
@@ -175,6 +171,22 @@
         modal.find('#probability').val(button.data('probability'))
         modal.find('#token_amount').val(button.data('token_amount'))
     })
+
+    $().ready(function() {
+    		// validate signup form on keyup and submit
+        $("#editForm").validate({
+          rules: {
+            probability: {              
+              digits: true,
+              min: 1,
+              max:100
+            },
+            token_amount: {
+              digits: true
+            }
+          }
+        });
+    });
 </script>
 
 
