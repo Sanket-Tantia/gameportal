@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from accounts.models import GameRound, Profile, AvailableToken, TokenTransaction, GrantedToken
 from .serializers import GameRoundSerializer, TokenTransactionSerializer
 
+from django.contrib.auth import authenticate
 
 class GameRoundListView(APIView):
     authentication_classes = [TokenAuthentication]
@@ -67,7 +68,7 @@ class UserGameProfileView(APIView):
         }
 
         responseBody = {'ResponseStatus': '200_OK', 'ResponseMessage': body}
-        return Response(responseBody, status=status.HTTP_201_CREATED)
+        return Response(responseBody, status=status.HTTP_200_OK)
 
 
 class UserRefillTokenView(APIView):
@@ -85,6 +86,30 @@ class UserRefillTokenView(APIView):
         serializer = TokenTransactionSerializer(data=transaction_data)
         if serializer.is_valid():
             serializer.save()
-            responseBody = {'ResponseStatus': '201_CREATED'}
-            return Response(responseBody, status=status.HTTP_201_CREATED)
+            responseBody = {'ResponseStatus': '200_OK'}
+            return Response(responseBody, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserAuthorizeRefillView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = authenticate(request, username=request.data.get('username'), password=request.data.get('password'))
+        if user is not None:
+            try:
+                available_token = AvailableToken.objects.get(username=user.id).available_token
+            except AvailableToken.DoesNotExist:
+                available_token = 0
+            
+            body = {
+                'username': user.username,
+                'available_token': available_token
+            }
+
+            responseBody = {'ResponseStatus': '200_OK', 'ResponseMessage': body}
+            return Response(responseBody, status=status.HTTP_200_OK)
+        else:
+            responseBody = {'ResponseStatus': '401_UNAUTHORIZED', 'ResponseMessage': "Username or password is incorrect"}
+            return Response(responseBody, status=status.HTTP_401_UNAUTHORIZED)

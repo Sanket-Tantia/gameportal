@@ -5,7 +5,8 @@ from .views import (
     adminDashboard,
     gameConsole,
     logoutPage,
-    transactionDashboard
+    transactionDashboard,
+    resultDashboard
 )
 
 urlpatterns = [
@@ -15,4 +16,5 @@ urlpatterns = [
     path('dashboard/', adminDashboard, name='admin_dashboard'),
     path('transaction/', transactionDashboard, name='transaction_dashboard'),
     path('console/', gameConsole, name='game_console'),
+    path('result/', resultDashboard, name='result_dashboard'),
 ]

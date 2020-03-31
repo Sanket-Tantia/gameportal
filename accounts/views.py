@@ -15,9 +15,10 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 
 from .forms import CreateUserForm, CreateProfileForm, TokenTransactionForm
-from .models import AvailableToken, Profile, TokenTransaction, GrantedToken
+from .models import AvailableToken, Profile, TokenTransaction, GrantedToken, GameRound
 
 from datetime import datetime
+from collections import defaultdict
 
 
 @isathenticated_user
@@ -123,15 +124,15 @@ def adminDashboard(request):
             if int(new_probability) != existing_probability:
                 with connection.cursor() as cursor:
                     if existing_probability:
-                        cursor.execute("""UPDATE accounts_profile 
-                        SET is_active = 0, end_date = DATE(%s) 
-                        WHERE is_active = 1 
-                        AND username_id = %s 
+                        cursor.execute("""UPDATE accounts_profile
+                        SET is_active = 0, end_date = DATE(%s)
+                        WHERE is_active = 1
+                        AND username_id = %s
                         AND probability != %s""", [date.today(), user_obj.id, new_probability])
                     else:
-                        cursor.execute("""UPDATE accounts_profile 
-                        SET is_active = 0, end_date = DATE(%s) 
-                        WHERE is_active = 1 
+                        cursor.execute("""UPDATE accounts_profile
+                        SET is_active = 0, end_date = DATE(%s)
+                        WHERE is_active = 1
                         AND username_id = %s""", [date.today(), user_obj.id])
 
                 profile_data = {
@@ -183,7 +184,7 @@ def adminDashboard(request):
             #     if profile_form.is_valid():
             #         profile_form.save()
         return HttpResponseRedirect('/dashboard')
-    
+
     all_users_detail, count = {}, 1
 
     for each_user in User.objects.filter(groups__name='customer'):
@@ -220,10 +221,8 @@ def transactionDashboard(request):
     purchase_token_history = TokenTransaction.objects.filter(
         is_token_purchased=True).order_by('username')
 
-    all_users_purchase_token, count = {}, 1
+    all_users_purchase_token, count = defaultdict(list), 1
     for each_transaction in purchase_token_history:
-        if not all_users_purchase_token.get(each_transaction.username.username, False):
-            all_users_purchase_token[each_transaction.username.username] = []
 
         all_users_purchase_token[each_transaction.username.username].append({
             'count': count,
@@ -235,10 +234,8 @@ def transactionDashboard(request):
     grant_token_history = TokenTransaction.objects.filter(
         is_token_granted=True).order_by('username')
 
-    all_users_grant_token, count = {}, 1
+    all_users_grant_token, count = defaultdict(list), 1
     for each_transaction in grant_token_history:
-        if not all_users_grant_token.get(each_transaction.username.username, False):
-            all_users_grant_token[each_transaction.username.username] = []
 
         all_users_grant_token[each_transaction.username.username].append({
             'count': count,
@@ -248,8 +245,8 @@ def transactionDashboard(request):
         count += 1
 
     # print(all_users_purchase_token)
-    context = {'all_users_purchase_token': all_users_purchase_token,
-               'all_users_grant_token': all_users_grant_token}
+    context = {'all_users_purchase_token': dict(all_users_purchase_token),
+               'all_users_grant_token': dict(all_users_grant_token)}
     return render(request, 'accounts/transaction_dashboard.html', context)
 
 
@@ -269,7 +266,6 @@ def gameConsole(request):
             'is_token_granted': True
         }
         token_transaction_form = TokenTransactionForm(transaction_data)
-
 
         if not request.POST.get('token_amount', False) or int(available_tokens) < int(request.POST.get('token_amount')) or int(request.POST.get('token_amount')) <= 0:
             is_valid_amount = False
@@ -297,7 +293,6 @@ def gameConsole(request):
             return HttpResponseRedirect('/console')
             # return render(request, 'accounts/game_console.html', context)
 
-    
     context = {
         'granted_token': 0,
         'login_time': request.user.last_login,
@@ -314,3 +309,47 @@ def gameConsole(request):
     response.set_cookie('username', request.user.id)
     response.set_cookie('session', request.session._session_key)
     return response
+
+
+@login_required(login_url='login')
+@authorized_user(allowed_roles=['admin'])
+def resultDashboard(request):
+    context = {}
+    game_history = GameRound.objects.all().order_by('username')
+
+    all_users_summary_game_history = {}
+    for each_game in game_history:
+        if not all_users_summary_game_history.get(each_game.username.username, False):
+            all_users_summary_game_history[each_game.username.username] = {
+                'session': [],
+                'total_games_played': 0,
+                'total_games_won': 0,
+                'total_tokens_won': 0
+            }
+        all_users_summary_game_history[each_game.username.username]['session'].append(
+            each_game.session)
+        all_users_summary_game_history[each_game.username.username]['total_games_played'] += 1
+        if each_game.tokens_won > 0:
+            all_users_summary_game_history[each_game.username.username]['total_games_won'] += 1
+            all_users_summary_game_history[each_game.username.username]['total_tokens_won'] += each_game.tokens_won
+    
+    for each_user in  all_users_summary_game_history.keys():
+        all_users_summary_game_history[each_user]['session'] = len(set(all_users_summary_game_history[each_user]['session']))
+
+    # print(all_users_summary_game_history)
+
+    all_users_detail_game_history = defaultdict(list)
+    for each_game in game_history:
+        all_users_detail_game_history[each_game.username.username].append({
+            'session': each_game.session[0:40],
+            'tokens_playing_for': each_game.tokens_playing_for,
+            'tokens_won': each_game.tokens_won,
+            'tokens_remaining': each_game.tokens_remaining,
+            'won_on_number': each_game.won_on_number,
+            'is_jackpot': each_game.is_jackpot,
+            'date': each_game.insert_datetime,
+        })
+
+    context = {'all_users_detail_game_history': dict(
+        all_users_detail_game_history),'all_users_summary_game_history':all_users_summary_game_history}
+    return render(request, 'accounts/result.html', context)
