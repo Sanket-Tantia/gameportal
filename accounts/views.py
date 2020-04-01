@@ -275,7 +275,8 @@ def gameConsole(request):
             context = {
                 'granted_token': request.POST.get('token_amount'),
                 'login_time': request.user.last_login,
-                'available_tokens': available_tokens - int(request.POST.get('token_amount'))
+                'available_tokens': available_tokens - int(request.POST.get('token_amount')),
+                'my_session': request.session._session_key
             }
             try:
                 context['granted_token'] = GrantedToken.objects.get(
@@ -288,7 +289,8 @@ def gameConsole(request):
             context = {
                 'granted_token': 0,
                 'login_time': request.user.last_login,
-                'available_tokens': available_tokens
+                'available_tokens': available_tokens,
+                'my_session': request.session._session_key
             }
             return HttpResponseRedirect('/console')
             # return render(request, 'accounts/game_console.html', context)
@@ -296,7 +298,8 @@ def gameConsole(request):
     context = {
         'granted_token': 0,
         'login_time': request.user.last_login,
-        'available_tokens': available_tokens
+        'available_tokens': available_tokens,
+        'my_session': request.session._session_key
     }
 
     try:
