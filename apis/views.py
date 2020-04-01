@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from accounts.models import GameRound, Profile, AvailableToken, TokenTransaction, GrantedToken
 from .serializers import GameRoundSerializer, TokenTransactionSerializer
 
+from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 
 class GameRoundListView(APIView):
@@ -96,7 +97,12 @@ class UserAuthorizeRefillView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        user = authenticate(request, username=request.data.get('username'), password=request.data.get('password'))
+        try:
+            username = User.objects.get(id=request.data.get('username')).username
+        except Exception as e:
+            responseBody = {'ResponseStatus': '401_UNAUTHORIZED', 'ResponseMessage': "User does not exist"}
+            return Response(responseBody, status=status.HTTP_401_UNAUTHORIZED)
+        user = authenticate(request, username=username, password=request.data.get('password'))
         if user is not None:
             try:
                 available_token = AvailableToken.objects.get(username=user.id).available_token
@@ -104,7 +110,7 @@ class UserAuthorizeRefillView(APIView):
                 available_token = 0
             
             body = {
-                'username': user.username,
+                'username': user.id,
                 'available_token': available_token
             }
 
