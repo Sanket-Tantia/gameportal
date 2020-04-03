@@ -323,21 +323,21 @@ def resultDashboard(request):
     all_users_summary_game_history = {}
     for each_game in game_history:
         if not all_users_summary_game_history.get(each_game.username.username, False):
+            available_token = AvailableToken.objects.get(username=each_game.username.id).available_token
             all_users_summary_game_history[each_game.username.username] = {
-                'session': [],
                 'total_games_played': 0,
                 'total_games_won': 0,
-                'total_tokens_won': 0
+                'total_tokens_won': 0,
+                'available_token': available_token
             }
-        all_users_summary_game_history[each_game.username.username]['session'].append(
-            each_game.session)
+
         all_users_summary_game_history[each_game.username.username]['total_games_played'] += 1
         if each_game.tokens_won > 0:
             all_users_summary_game_history[each_game.username.username]['total_games_won'] += 1
             all_users_summary_game_history[each_game.username.username]['total_tokens_won'] += each_game.tokens_won
     
     for each_user in  all_users_summary_game_history.keys():
-        all_users_summary_game_history[each_user]['session'] = len(set(all_users_summary_game_history[each_user]['session']))
+        all_users_summary_game_history[each_user]['margin'] = 100*all_users_summary_game_history[each_user]['total_games_won']/all_users_summary_game_history[each_user]['total_games_played']
 
     # print(all_users_summary_game_history)
 

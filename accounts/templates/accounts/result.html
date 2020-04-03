@@ -19,33 +19,40 @@
           <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3" style="margin: 1%;">
               <h1 class="h4">Game Result History</h1>
               <div class="btn-toolbar mb-2 mb-md-0">
+                {% if all_users_summary_game_history %}
                 <div class="btn-group mr-2">
                   <button id="summaryButton" class="btn btn-sm btn-secondary" onclick="showSummaryView()"><strong>Summary</strong></button>
                   <button id="detailButton" class="btn btn-sm btn-outline-secondary" onclick="showDetailView()"><strong>Detail</strong></button>
                 </div>
+                {% endif %}
               </div>
           </div>
+          {% if all_users_summary_game_history %}
           <div class="container">
             <div id="summary" class="showMe">
               <div class="table-responsive">
                 <table class="table table-striped table-hover" style="text-align: center;">
                     <thead>
                         <tr>
-                            <th>Username</th>
-                            <th>Total Sessions</th>
-                            <th>Total Games Played</th>
-                            <th>Total Games Won</th>
-                            <th>Total Tokens Won</th>
+                            <th>Distributor ID</th>
+                            <th>Type</th>
+                            <th>Played</th>
+                            <th>Won</th>
+                            <th>Tokens Won</th>
+                            <th>Tokens Remaining</th>
+                            <th>Margin %</th>
                         </tr>
                     </thead>
                     <tbody>
                       {% for username,values in all_users_summary_game_history.items %}
                       <tr>
                         <td>{{username}}</td>
-                        <td>{{values.session}}</td>
+                        <td>Distributor</td>
                         <td>{{values.total_games_played}}</td>
                         <td>{{values.total_games_won}}</td>
                         <td>{{values.total_tokens_won}}</td>
+                        <td>{{values.available_token}}</td>
+                        <td>{{values.margin}}</td>
                       </tr>
                       {% endfor %}
                     </tbody>
@@ -86,7 +93,11 @@
                             <td>{{each_value.tokens_playing_for}}</td>
                             <td>{{each_value.tokens_won}}</td>
                             <td>{{each_value.tokens_remaining}}</td>
+                            {% if each_value.won_on_number == -90 %}
+                            <td>--</td>
+                            {% else %}
                             <td>{{each_value.won_on_number}}</td>
+                            {% endif %}
                             <td>{{each_value.is_jackpot}}</td>
                             <td>{{each_value.date}}</td>
                           </tr>
@@ -100,6 +111,11 @@
               </div>
             </div>
           </div>
+          {% else %}
+            <div class="container-fluid" style="text-align: center; margin-top: 17.5%; ">
+              <h3 class="text-muted display-4">No Records Exist.<br></h3>
+            </div>
+          {% endif %}
         </main>
     </div>
 </div>
